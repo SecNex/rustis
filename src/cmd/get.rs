@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use std::time::{Instant};
+use std::time::Instant;
+
+type Db = Arc<Mutex<HashMap<String, DbValue>>>;
+type DbValue = (String, Option<Instant>);
 
 pub struct GetCommand<'a> {
     key: &'a str,
@@ -11,7 +14,7 @@ impl<'a> GetCommand<'a> {
         GetCommand { key }
     }
 
-    pub fn execute(&self, db: &Arc<Mutex<HashMap<String, (String, Option<Instant>)>>>) -> String {
+    pub fn execute(&self, db: &Db) -> String {
         let mut db = db.lock().unwrap();
         if let Some((value, expire_time)) = db.get(self.key) {
             if let Some(expire_time) = expire_time {

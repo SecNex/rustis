@@ -2,6 +2,9 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::{Instant};
 
+type Db = Arc<Mutex<HashMap<String, DbValue>>>;
+type DbValue = (String, Option<Instant>);
+
 pub struct TTLCommand<'a> {
     key: &'a str,
 }
@@ -11,7 +14,7 @@ impl<'a> TTLCommand<'a> {
         TTLCommand { key }
     }
 
-    pub fn execute(&self, db: &Arc<Mutex<HashMap<String, (String, Option<Instant>)>>>) -> String {
+    pub fn execute(&self, db: &Db) -> String {
         let db = db.lock().unwrap();
         if let Some((_, Some(expire_time))) = db.get(self.key) {
             let ttl = expire_time.saturating_duration_since(Instant::now()).as_secs();

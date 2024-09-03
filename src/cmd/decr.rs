@@ -2,6 +2,9 @@ use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
 use std::time::Instant;
 
+type Db = Arc<Mutex<HashMap<String, DbValue>>>;
+type DbValue = (String, Option<Instant>);
+
 pub struct DecrCommand {
     key: String,
 }
@@ -13,7 +16,7 @@ impl DecrCommand {
         }
     }
 
-    pub fn execute(&self, db: &Arc<Mutex<HashMap<String, (String, Option<Instant>)>>>) -> String {
+    pub fn execute(&self, db: &Db) -> String {
         let mut db = db.lock().unwrap();
         let entry = db.entry(self.key.clone()).or_insert(("0".to_string(), None));
 
