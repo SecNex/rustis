@@ -12,6 +12,10 @@ use tokio::net::TcpStream as TokioTcpStream;
 use config::Settings;
 use db::connection::DbConnection;
 
+// Typaliasen für die Datenbank und den Wert
+type Db = Arc<Mutex<HashMap<String, DbValue>>>;
+type DbValue = (String, Option<Instant>);
+
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
     let settings = Settings::new().expect("Failed to load settings");
@@ -39,7 +43,7 @@ async fn main() -> std::io::Result<()> {
     let listener = TcpListener::bind(address_listener.clone())?;
     println!("Server is running on {}", address_listener);
 
-    let db: Arc<Mutex<HashMap<String, (String, Option<Instant>)>>> = Arc::new(Mutex::new(HashMap::new()));
+    let db: Db = Arc::new(Mutex::new(HashMap::new()));
 
     for stream in listener.incoming() {
         let stream = stream?;

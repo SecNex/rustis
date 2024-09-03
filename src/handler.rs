@@ -130,13 +130,10 @@ pub async fn handle_client(mut stream: TcpStream, db: Db, db_conn: Arc<DbConnect
             Some(command) if command == "USERS" => {
                 println!("Executing USERS command");
                 match db_conn.query_users().await {
-                    Ok(users) => {
-                        let response = users.into_iter()
-                            .map(|(username, password, role)| format!("{}:{}:{}", username, password, role))
-                            .collect::<Vec<String>>()
-                            .join("\n");
-                        response
-                    }
+                    Ok(users) => users.into_iter()
+                        .map(|(username, password, role)| format!("{}:{}:{}", username, password, role))
+                        .collect::<Vec<String>>()
+                        .join("\n"),
                     Err(_) => "-ERR failed to query users\r\n".to_string(),
                 }
             }
