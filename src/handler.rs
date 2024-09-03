@@ -18,7 +18,7 @@ pub fn parse_resp_bulk_string(input: &str) -> Vec<String> {
         return args;
     }
 
-    if let Some(count_str) = parts.get(0).and_then(|s| s.strip_prefix('*')) {
+    if let Some(count_str) = parts.first().and_then(|s| s.strip_prefix('*')) {
         if let Ok(count) = count_str.parse::<usize>() {
             for i in 0..count {
                 if let (Some(len_str), Some(value)) = (parts.get(i * 2 + 1), parts.get(i * 2 + 2)) {
