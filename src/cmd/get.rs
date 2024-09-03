@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use std::time::{Instant, Duration};
+use std::time::{Instant};
 
 pub struct GetCommand<'a> {
     key: &'a str,

@@ -4,6 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bcrypt = "0.12"  # Die Version kann je nach Verfügbarkeit variieren
+tokio = { version = "1", features = ["full"] }
+tokio-postgres = "0.7"
+config = "0.13"
+bcrypt = "0.12"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
