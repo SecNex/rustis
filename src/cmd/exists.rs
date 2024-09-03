@@ -2,6 +2,9 @@ use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
 use std::time::Instant;
 
+type Db = Arc<Mutex<HashMap<String, DbValue>>>;
+type DbValue = (String, Option<Instant>);
+
 pub struct ExistsCommand {
     keys: Vec<String>,
 }
@@ -11,7 +14,7 @@ impl ExistsCommand {
         ExistsCommand { keys }
     }
 
-    pub fn execute(&self, db: &Arc<Mutex<HashMap<String, (String, Option<Instant>)>>>) -> String {
+    pub fn execute(&self, db: &Db) -> String {
         let db = db.lock().unwrap();
         let mut count = 0;
 
