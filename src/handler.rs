@@ -14,14 +14,16 @@ pub fn parse_resp_bulk_string(input: &str) -> Vec<String> {
         return args;
     }
 
-    if parts[0].starts_with('*') {
-        let count = parts[0][1..].parse::<usize>().unwrap_or(0);
-        for i in 0..count {
-            if i * 2 + 1 < parts.len() {
-                if parts[i * 2 + 1].starts_with('$') {
-                    let len = parts[i * 2 + 1][1..].parse::<usize>().unwrap_or(0);
-                    if i * 2 + 2 < parts.len() && parts[i * 2 + 2].len() == len {
-                        args.push(parts[i * 2 + 2].to_string());
+    if let Some(count_str) = parts.get(0).and_then(|s| s.strip_prefix('*')) {
+        if let Ok(count) = count_str.parse::<usize>() {
+            for i in 0..count {
+                if let (Some(len_str), Some(value)) = (parts.get(i * 2 + 1), parts.get(i * 2 + 2)) {
+                    if let Some(len_str) = len_str.strip_prefix('$') {
+                        if let Ok(len) = len_str.parse::<usize>() {
+                            if value.len() == len {
+                                args.push(value.to_string());
+                            }
+                        }
                     }
                 }
             }

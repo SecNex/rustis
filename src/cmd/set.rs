@@ -2,6 +2,9 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
+type Db = Arc<Mutex<HashMap<String, DbValue>>>;
+type DbValue = (String, Option<Instant>);
+
 pub struct SetCommand<'a> {
     key: &'a str,
     value: &'a str,
@@ -14,15 +17,10 @@ impl<'a> SetCommand<'a> {
         SetCommand { key, value, expire_seconds, expire_milliseconds }
     }
 
-    pub fn execute(&self, db: &Arc<Mutex<HashMap<String, (String, Option<Instant>)>>>) -> String {
+    pub fn execute(&self, db: &Db) -> String {
         let mut db = db.lock().unwrap();
-        let expire_time = if let Some(seconds) = self.expire_seconds {
-            Some(Instant::now() + Duration::from_secs(seconds))
-        } else if let Some(milliseconds) = self.expire_milliseconds {
-            Some(Instant::now() + Duration::from_millis(milliseconds))
-        } else {
-            None
-        };
+        let expire_time = self.expire_seconds.map(|seconds| Instant::now() + Duration::from_secs(seconds))
+            .or_else(|| self.expire_milliseconds.map(|milliseconds| Instant::now() + Duration::from_millis(milliseconds)));
         db.insert(self.key.to_string(), (self.value.to_string(), expire_time));
         "+OK\r\n".to_string()
     }
