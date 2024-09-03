@@ -16,7 +16,7 @@ impl DecrCommand {
         }
     }
 
-    pub fn execute(&self, db: &Db)>>>) -> String {
+    pub fn execute(&self, db: &Db) -> String {
         let mut db = db.lock().unwrap();
         let entry = db.entry(self.key.clone()).or_insert(("0".to_string(), None));
 
