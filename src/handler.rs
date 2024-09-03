@@ -6,6 +6,10 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use crate::db::connection::DbConnection;
 use crate::cmd::{set, get, expire, ttl, incr, decr, exists};
 
+// Typaliasen für die Datenbank und den Wert
+type Db = Arc<Mutex<HashMap<String, DbValue>>>;
+type DbValue = (String, Option<Instant>);
+
 pub fn parse_resp_bulk_string(input: &str) -> Vec<String> {
     let mut args = Vec::new();
     let parts: Vec<&str> = input.split("\r\n").collect();
@@ -32,7 +36,7 @@ pub fn parse_resp_bulk_string(input: &str) -> Vec<String> {
     args
 }
 
-pub async fn handle_client(mut stream: TcpStream, db: Arc<Mutex<HashMap<String, (String, Option<Instant>)>>>, db_conn: Arc<DbConnection>) {
+pub async fn handle_client(mut stream: TcpStream, db: Db, db_conn: Arc<DbConnection>) {
     let peer_addr = stream.peer_addr().unwrap();
     println!("New connection from {}", peer_addr);
     
@@ -60,7 +64,7 @@ pub async fn handle_client(mut stream: TcpStream, db: Arc<Mutex<HashMap<String, 
             continue;
         }
 
-        let response = match args.get(0).map(|s| s.to_uppercase()) {
+        let response = match args.first().map(|s| s.to_uppercase()) {
             Some(command) if command == "SET" => {
                 let key = &args[1];
                 let value = &args[2];
