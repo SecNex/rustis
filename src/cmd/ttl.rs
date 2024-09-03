@@ -20,7 +20,7 @@ impl<'a> TTLCommand<'a> {
             let ttl = expire_time.saturating_duration_since(Instant::now()).as_secs();
             format!(":{}\r\n", ttl)
         } else {
-            ":-1\r\n".to_string() // -1 indicates that the key does not have an associated expire time
+            ":-1\r\n".to_string()
         }
     }
 }

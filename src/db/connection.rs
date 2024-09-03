@@ -20,7 +20,6 @@ impl DbConnection {
         let (client, connection) =
             tokio_postgres::connect(&connection_string, NoTls).await?;
 
-        // Die Verbindung wird im Hintergrund weitergeführt
         tokio::spawn(async move {
             if let Err(e) = connection.await {
                 eprintln!("connection error: {}", e);
@@ -44,7 +43,6 @@ impl DbConnection {
         Ok(users)
     }
 
-    // Neue Methode zum Prüfen der Verbindung
     pub async fn ping(&self) -> Result<(), Error> {
         self.client.execute("SELECT 1", &[]).await?;
         Ok(())

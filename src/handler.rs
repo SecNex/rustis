@@ -4,9 +4,8 @@ use std::time::Instant;
 use tokio::net::TcpStream;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use crate::db::connection::DbConnection;
-use crate::cmd::{set, get, expire, ttl, incr, decr, exists};
+use crate::cmd::{set, get, expire, ttl, incr, decr, exists, json::{SetJsonCommand, GetJsonCommand, DelJsonCommand}};
 
-// Typaliasen für die Datenbank und den Wert
 type Db = Arc<Mutex<HashMap<String, DbValue>>>;
 type DbValue = (String, Option<Instant>);
 
@@ -46,12 +45,12 @@ pub async fn handle_client(mut stream: TcpStream, db: Db, db_conn: Arc<DbConnect
         let bytes_read = match stream.read(&mut buffer).await {
             Ok(0) => {
                 println!("Connection closed by {}", peer_addr);
-                return; // Verbindung geschlossen
+                return;
             }
             Ok(n) => n,
             Err(_) => {
                 println!("Error reading from connection {}", peer_addr);
-                return; // Fehler beim Lesen
+                return;
             }
         };
 
@@ -136,6 +135,27 @@ pub async fn handle_client(mut stream: TcpStream, db: Db, db_conn: Arc<DbConnect
                         .join("\n"),
                     Err(_) => "-ERR failed to query users\r\n".to_string(),
                 }
+            }
+            Some(command) if command == "JSON.SET" && args.len() == 4 => {
+                println!("Executing JSON.SET command");
+                let key = &args[1];
+                let path = &args[2];
+                let value = &args[3];
+                let json_cmd = SetJsonCommand::new(key, path, value);
+                json_cmd.execute(&db)
+            }
+            Some(command) if command == "JSON.GET" && args.len() >= 2 => {
+                println!("Executing JSON.GET command");
+                let key = &args[1];
+                let paths: Vec<&str> = args[2..].iter().map(|s| s.as_str()).collect();
+                let json_cmd = GetJsonCommand::new(key, &paths);
+                json_cmd.execute(&db)
+            }
+            Some(command) if command == "JSON.DEL" && args.len() == 2 => {
+                println!("Executing JSON.DEL command");
+                let key = &args[1];
+                let json_cmd = DelJsonCommand::new(key);
+                json_cmd.execute(&db)
             }
             _ => "-ERR unknown command or wrong number of arguments\r\n".to_string(),
         };

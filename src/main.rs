@@ -12,7 +12,6 @@ use tokio::net::TcpStream as TokioTcpStream;
 use config::Settings;
 use db::connection::DbConnection;
 
-// Typaliasen für die Datenbank und den Wert
 type Db = Arc<Mutex<HashMap<String, DbValue>>>;
 type DbValue = (String, Option<Instant>);
 
@@ -23,7 +22,6 @@ async fn main() -> std::io::Result<()> {
     let port = settings.server.port.unwrap_or(6379);
     let address_listener = format!("{}:{}", address, port);
 
-    // Initialisiere die Datenbankverbindung
     let db_conn = Arc::new(
         DbConnection::new(
             settings.database.host.as_deref().unwrap_or("localhost"),
@@ -34,7 +32,6 @@ async fn main() -> std::io::Result<()> {
         ).await.expect("Failed to connect to the database"),
     );
 
-    // Prüfen Sie die Verbindung
     match db_conn.ping().await {
         Ok(_) => println!("Database connection is active"),
         Err(e) => eprintln!("Failed to ping database: {}", e),
@@ -51,7 +48,7 @@ async fn main() -> std::io::Result<()> {
         let db_conn = Arc::clone(&db_conn);
 
         tokio::spawn(async move {
-            let stream = TokioTcpStream::from_std(stream).unwrap(); // Konvertieren von std::net::TcpStream zu tokio::net::TcpStream
+            let stream = TokioTcpStream::from_std(stream).unwrap();
             handler::handle_client(stream, db, db_conn).await;
         });
     }

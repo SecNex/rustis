@@ -20,12 +20,12 @@ impl<'a> GetCommand<'a> {
             if let Some(expire_time) = expire_time {
                 if Instant::now() > *expire_time {
                     db.remove(self.key);
-                    return "$-1\r\n".to_string(); // Key not found
+                    return "$-1\r\n".to_string();
                 }
             }
             format!("${}\r\n{}\r\n", value.len(), value)
         } else {
-            "$-1\r\n".to_string() // Key not found
+            "$-1\r\n".to_string()
         }
     }
 }
